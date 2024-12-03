@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+---
+apiVersion: resource.k8s.io/v1alpha3
+kind: ResourceClaim
+metadata:
+  namespace: test
+  name: test-claim
+spec:
+  devices:
+    requests:
+    - name: device
+      deviceClassName: noop.example.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: test-deploy
+  labels:
+    app: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+      - name: ctr
+        image: ubuntu:22.04
+        command: ["bash", "-c"]
+        args: ["export; trap 'exit 0' TERM; sleep 9999 & wait"]
+        resources:
+          claims:
+          - name: device
+      resourceClaims:
+      - name: device
+        resourceClaimName: test-claim

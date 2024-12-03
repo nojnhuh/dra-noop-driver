@@ -1,0 +1,133 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dra-noop-driver
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dra-noop-driver
+  namespace: dra-noop-driver
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dra-noop-driver-role
+  namespace: dra-noop-driver
+rules:
+- apiGroups: ["resource.k8s.io"]
+  resources: ["resourceclaims"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get"]
+- apiGroups: ["resource.k8s.io"]
+  resources: ["resourceslices"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: dra-noop-driver-role-binding
+  namespace: dra-noop-driver
+subjects:
+- kind: ServiceAccount
+  name: dra-noop-driver
+  namespace: dra-noop-driver
+roleRef:
+  kind: ClusterRole
+  name: dra-noop-driver-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: dra-noop-driver
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: dra-noop-driver
+    app.kubernetes.io/version: 0.1.0
+  name: dra-noop-driver-kubeletplugin
+  namespace: dra-noop-driver
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: dra-noop-driver
+      app.kubernetes.io/name: dra-noop-driver
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: dra-noop-driver
+        app.kubernetes.io/name: dra-noop-driver
+    spec:
+      containers:
+      - command:
+        - /usr/bin/dra-noop-kubeletplugin
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: registry.example.com/dra-noop-driver:latest
+        imagePullPolicy: Never
+        name: plugin
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /var/lib/kubelet/plugins_registry
+          name: plugins-registry
+        - mountPath: /var/lib/kubelet/plugins
+          name: plugins
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      serviceAccountName: dra-noop-driver
+      volumes:
+      - hostPath:
+          path: /var/lib/kubelet/plugins_registry
+          type: ""
+        name: plugins-registry
+      - hostPath:
+          path: /var/lib/kubelet/plugins
+          type: ""
+        name: plugins
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: DeviceClass
+metadata:
+  name: noop.example.com
+spec:
+  selectors:
+  - cel:
+      expression: device.driver == 'noop.example.com'
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: dra-example-driver-cluster
+spec:
+  devices:
+    - basic: {}
+      name: dev-0
+    - basic: {}
+      name: dev-1
+    - basic: {}
+      name: dev-2
+    - basic: {}
+      name: dev-3
+  driver: noop.example.com
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: DoesNotExist
+  pool:
+    name: dra-example-driver-cluster
+    generation: 0
+    resourceSliceCount: 1
