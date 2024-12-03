@@ -2,17 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/urfave/cli/v2"
-	coreclientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/dynamic-resource-allocation/kubeletplugin"
 	"k8s.io/klog/v2"
 	drapbv1 "k8s.io/kubelet/pkg/apis/dra/v1alpha4"
-	"sigs.k8s.io/dra-example-driver/pkg/flags"
 )
 
 const (
@@ -23,79 +22,32 @@ const (
 	DriverPluginSocketPath = DriverPluginPath + "/plugin.sock"
 )
 
-type Flags struct {
-	kubeClientConfig flags.KubeClientConfig
-	loggingConfig    *flags.LoggingConfig
-
-	nodeName string
-}
-
-type Config struct {
-	flags      *Flags
-	coreclient coreclientset.Interface
-}
-
 func main() {
-	if err := newApp().Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	ctx := context.Background()
+
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	configOverrides := &clientcmd.ConfigOverrides{}
+	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
+	config, err := kubeConfig.ClientConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	clientset := kubernetes.NewForConfigOrDie(config)
+	nodeName := os.Getenv("NODE_NAME")
+
+	if err := StartPlugin(ctx, clientset, nodeName); err != nil {
+		log.Fatal(err)
 	}
 }
 
-func newApp() *cli.App {
-	flags := &Flags{
-		loggingConfig: flags.NewLoggingConfig(),
-	}
-	cliFlags := []cli.Flag{
-		&cli.StringFlag{
-			Name:        "node-name",
-			Usage:       "The name of the node to be worked on.",
-			Required:    true,
-			Destination: &flags.nodeName,
-			EnvVars:     []string{"NODE_NAME"},
-		},
-	}
-	cliFlags = append(cliFlags, flags.kubeClientConfig.Flags()...)
-	cliFlags = append(cliFlags, flags.loggingConfig.Flags()...)
-
-	app := &cli.App{
-		Name:            "dra-noop-kubeletplugin",
-		Usage:           "dra-noop-kubeletplugin implements a DRA driver plugin.",
-		ArgsUsage:       " ",
-		HideHelpCommand: true,
-		Flags:           cliFlags,
-		Before: func(c *cli.Context) error {
-			if c.Args().Len() > 0 {
-				return fmt.Errorf("arguments not supported: %v", c.Args().Slice())
-			}
-			return flags.loggingConfig.Apply()
-		},
-		Action: func(c *cli.Context) error {
-			ctx := c.Context
-			clientSets, err := flags.kubeClientConfig.NewClientSets()
-			if err != nil {
-				return fmt.Errorf("create client: %v", err)
-			}
-
-			config := &Config{
-				flags:      flags,
-				coreclient: clientSets.Core,
-			}
-
-			return StartPlugin(ctx, config)
-		},
-	}
-
-	return app
-}
-
-func StartPlugin(ctx context.Context, config *Config) error {
+func StartPlugin(ctx context.Context, clientset kubernetes.Interface, nodeName string) error {
 	err := os.MkdirAll(DriverPluginPath, 0750)
 	if err != nil {
 		return err
 	}
 
-	driver, err := NewDriver(ctx, config)
+	driver, err := NewDriver(ctx, clientset, nodeName)
 	if err != nil {
 		return err
 	}
@@ -116,14 +68,14 @@ type driver struct {
 	plugin kubeletplugin.DRAPlugin
 }
 
-func NewDriver(ctx context.Context, config *Config) (*driver, error) {
+func NewDriver(ctx context.Context, clientset kubernetes.Interface, nodeName string) (*driver, error) {
 	driver := &driver{}
 
 	plugin, err := kubeletplugin.Start(
 		ctx,
 		driver,
-		kubeletplugin.KubeClient(config.coreclient),
-		kubeletplugin.NodeName(config.flags.nodeName),
+		kubeletplugin.KubeClient(clientset),
+		kubeletplugin.NodeName(nodeName),
 		kubeletplugin.DriverName(DriverName),
 		kubeletplugin.RegistrarSocketPath(PluginRegistrationPath),
 		kubeletplugin.PluginSocketPath(DriverPluginSocketPath),

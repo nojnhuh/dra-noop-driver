@@ -70,13 +70,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        image: registry.example.com/dra-noop-driver:latest
-        imagePullPolicy: Never
+        image: jondev.azurecr.io/dra-noo-driver:latest
+        imagePullPolicy: Always
         name: plugin
         securityContext:
           privileged: true
