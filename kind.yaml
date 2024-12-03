@@ -16,36 +16,31 @@ nodes:
     apiServer:
         extraArgs:
           runtime-config: "resource.k8s.io/v1alpha3=true,resource.k8s.io/v1beta1=true"
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: rack-id=0
 - role: worker
   kubeadmConfigPatches:
   - |
     kind: JoinConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: rack-id=0
+        node-labels: device-id=0
 - role: worker
   kubeadmConfigPatches:
   - |
     kind: JoinConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: rack-id=0
+        node-labels: device-id=0
 - role: worker
   kubeadmConfigPatches:
   - |
     kind: JoinConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: rack-id=1
+        node-labels: device-id=1
 - role: worker
   kubeadmConfigPatches:
   - |
     kind: JoinConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: rack-id=1
+        node-labels: device-id=1

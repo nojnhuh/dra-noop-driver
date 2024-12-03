@@ -96,33 +96,197 @@ spec:
 apiVersion: resource.k8s.io/v1beta1
 kind: DeviceClass
 metadata:
-  name: noop.example.com
+  name: imex.nvidia.com
 spec:
   selectors:
   - cel:
-      expression: device.driver == 'noop.example.com'
+      expression: device.driver == 'noop.example.com' && device.attributes["noop.example.com"].type == 'imex'
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: DeviceClass
+metadata:
+  name: gpu.nvidia.com
+spec:
+  selectors:
+  - cel:
+      expression: device.driver == 'noop.example.com' && device.attributes["noop.example.com"].type == 'gpu'
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
 metadata:
-  name: dra-example-driver-cluster
+  name: imex-0
 spec:
   devices:
-    - basic: {}
-      name: dev-0
-    - basic: {}
-      name: dev-1
-    - basic: {}
-      name: dev-2
-    - basic: {}
-      name: dev-3
+    - basic:
+        attributes:
+          type:
+            string: imex
+      name: imex-0
   driver: noop.example.com
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
+          - key: device-id
+            operator: In
+            values:
+              - "0"
   pool:
-    name: dra-example-driver-cluster
+    name: imex-0
+    generation: 0
+    resourceSliceCount: 1
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: imex-1
+spec:
+  devices:
+    - basic:
+        attributes:
+          type:
+            string: imex
+      name: imex-1
+  driver: noop.example.com
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: device-id
+            operator: In
+            values:
+              - "1"
+  pool:
+    name: imex-1
+    generation: 0
+    resourceSliceCount: 1
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: gpu-0
+spec:
+  devices:
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-0
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-1
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-2
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-3
+  driver: noop.example.com
+  nodeName: kind-worker
+  pool:
+    name: gpu-0
+    generation: 0
+    resourceSliceCount: 1
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: gpu-1
+spec:
+  devices:
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-0
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-1
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-2
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-3
+  driver: noop.example.com
+  nodeName: kind-worker2
+  pool:
+    name: gpu-1
+    generation: 0
+    resourceSliceCount: 1
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: gpu-2
+spec:
+  devices:
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-0
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-1
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-2
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-3
+  driver: noop.example.com
+  nodeName: kind-worker3
+  pool:
+    name: gpu-2
+    generation: 0
+    resourceSliceCount: 1
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceSlice
+metadata:
+  name: gpu-3
+spec:
+  devices:
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-0
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-1
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-2
+    - basic:
+        attributes:
+          type:
+            string: gpu
+      name: gpu-3
+  driver: noop.example.com
+  nodeName: kind-worker4
+  pool:
+    name: gpu-3
     generation: 0
     resourceSliceCount: 1
