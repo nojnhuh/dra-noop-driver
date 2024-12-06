@@ -1,32 +1,10 @@
----
+# Common Resources
 apiVersion: v1
 kind: Namespace
 metadata:
   name: test
 ---
-apiVersion: resource.k8s.io/v1alpha3
-kind: ResourceClaim
-metadata:
-  namespace: test
-  name: test-imex-claim
-spec:
-  devices:
-    requests:
-    - name: imex
-      deviceClassName: imex.nvidia.com
----
-apiVersion: resource.k8s.io/v1alpha3
-kind: ResourceClaim
-metadata:
-  namespace: test
-  name: test-imex-claim-1
-spec:
-  devices:
-    requests:
-    - name: imex
-      deviceClassName: imex.nvidia.com
----
-apiVersion: resource.k8s.io/v1alpha3
+apiVersion: resource.k8s.io/v1beta1
 kind: ResourceClaimTemplate
 metadata:
   namespace: test
@@ -38,37 +16,18 @@ spec:
       - name: gpu
         deviceClassName: gpu.nvidia.com
 ---
-apiVersion: apps/v1
-kind: Deployment
+
+# Workload 1
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceClaim
 metadata:
   namespace: test
-  name: test-deploy
-  labels:
-    app: test
+  name: test-imex-claim-1
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: test
-  template:
-    metadata:
-      labels:
-        app: test
-    spec:
-      containers:
-      - name: ctr
-        image: ubuntu:22.04
-        command: ["bash", "-c"]
-        args: ["export; trap 'exit 0' TERM; sleep 9999 & wait"]
-        resources:
-          claims:
-          - name: imex
-          - name: gpu
-      resourceClaims:
-      - name: imex
-        resourceClaimName: test-imex-claim
-      - name: gpu
-        resourceClaimTemplateName: test-gpu-claim
+  devices:
+    requests:
+    - name: imex
+      deviceClassName: imex.nvidia.com
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -76,16 +35,16 @@ metadata:
   namespace: test
   name: test-deploy-1
   labels:
-    app: test
+    app: test-1
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: test
+      app: test-1
   template:
     metadata:
       labels:
-        app: test
+        app: test-1
     spec:
       containers:
       - name: ctr
@@ -99,5 +58,50 @@ spec:
       resourceClaims:
       - name: imex
         resourceClaimName: test-imex-claim-1
+      - name: gpu
+        resourceClaimTemplateName: test-gpu-claim
+---
+
+# Workload 2
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceClaim
+metadata:
+  namespace: test
+  name: test-imex-claim-2
+spec:
+  devices:
+    requests:
+    - name: imex
+      deviceClassName: imex.nvidia.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: test
+  name: test-deploy-2
+  labels:
+    app: test-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-2
+  template:
+    metadata:
+      labels:
+        app: test-2
+    spec:
+      containers:
+      - name: ctr
+        image: ubuntu:22.04
+        command: ["bash", "-c"]
+        args: ["export; trap 'exit 0' TERM; sleep 9999 & wait"]
+        resources:
+          claims:
+          - name: imex
+          - name: gpu
+      resourceClaims:
+      - name: imex
+        resourceClaimName: test-imex-claim-2
       - name: gpu
         resourceClaimTemplateName: test-gpu-claim

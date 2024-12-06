@@ -126,7 +126,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: device-id
+          - key: imex-id
             operator: In
             values:
               - "0"
@@ -150,7 +150,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-          - key: device-id
+          - key: imex-id
             operator: In
             values:
               - "1"
