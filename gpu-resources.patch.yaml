@@ -1,0 +1,4 @@
+# k get no -l "node-role.kubernetes.io/control-plane!=" -o json | jq '.items[]' | k patch --subresource=status -f - --patch-file gpu-resources.patch.yaml
+status:
+  capacity:
+    nvidia.com/gpu: "4"

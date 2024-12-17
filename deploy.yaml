@@ -99,9 +99,9 @@ spec:
             values:
               - "0"
   pool:
-    name: imex-0
+    name: imex
     generation: 0
-    resourceSliceCount: 1
+    resourceSliceCount: 2
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
@@ -123,14 +123,14 @@ spec:
             values:
               - "1"
   pool:
-    name: imex-1
+    name: imex
     generation: 0
-    resourceSliceCount: 1
+    resourceSliceCount: 2
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
 metadata:
-  name: gpu-0
+  name: kind-worker-gpu
 spec:
   devices:
     - basic:
@@ -156,14 +156,14 @@ spec:
   driver: noop.example.com
   nodeName: kind-worker
   pool:
-    name: gpu-0
+    name: kind-worker
     generation: 0
     resourceSliceCount: 1
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
 metadata:
-  name: gpu-1
+  name: kind-worker2-gpu
 spec:
   devices:
     - basic:
@@ -189,14 +189,14 @@ spec:
   driver: noop.example.com
   nodeName: kind-worker2
   pool:
-    name: gpu-1
+    name: kind-worker2
     generation: 0
     resourceSliceCount: 1
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
 metadata:
-  name: gpu-2
+  name: kind-worker3-gpu
 spec:
   devices:
     - basic:
@@ -222,14 +222,14 @@ spec:
   driver: noop.example.com
   nodeName: kind-worker3
   pool:
-    name: gpu-2
+    name: kind-worker3
     generation: 0
     resourceSliceCount: 1
 ---
 apiVersion: resource.k8s.io/v1beta1
 kind: ResourceSlice
 metadata:
-  name: gpu-3
+  name: kind-worker4-gpu
 spec:
   devices:
     - basic:
@@ -255,6 +255,6 @@ spec:
   driver: noop.example.com
   nodeName: kind-worker4
   pool:
-    name: gpu-3
+    name: kind-worker4
     generation: 0
     resourceSliceCount: 1

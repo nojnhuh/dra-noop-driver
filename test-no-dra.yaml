@@ -14,7 +14,7 @@ metadata:
   labels:
     app: test-1
 spec:
-  replicas: 1
+  replicas: 8
   selector:
     matchLabels:
       app: test-1
@@ -49,6 +49,11 @@ spec:
         image: ubuntu:22.04
         command: ["bash", "-c"]
         args: ["export; trap 'exit 0' TERM; sleep 9999 & wait"]
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
 ---
 
 # Workload 2
@@ -60,7 +65,7 @@ metadata:
   labels:
     app: test-2
 spec:
-  replicas: 1
+  replicas: 8
   selector:
     matchLabels:
       app: test-2
@@ -95,3 +100,8 @@ spec:
         image: ubuntu:22.04
         command: ["bash", "-c"]
         args: ["export; trap 'exit 0' TERM; sleep 9999 & wait"]
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
