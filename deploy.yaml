@@ -10,44 +10,12 @@ metadata:
   name: dra-noop-driver
   namespace: dra-noop-driver
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: dra-noop-driver-role
-  namespace: dra-noop-driver
-rules:
-- apiGroups: ["resource.k8s.io"]
-  resources: ["resourceclaims"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["nodes"]
-  verbs: ["get"]
-- apiGroups: ["resource.k8s.io"]
-  resources: ["resourceslices"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: dra-noop-driver-role-binding
-  namespace: dra-noop-driver
-subjects:
-- kind: ServiceAccount
-  name: dra-noop-driver
-  namespace: dra-noop-driver
-roleRef:
-  kind: ClusterRole
-  name: dra-noop-driver-role
-  apiGroup: rbac.authorization.k8s.io
----
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
     app.kubernetes.io/instance: dra-noop-driver
-    app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: dra-noop-driver
-    app.kubernetes.io/version: 0.1.0
   name: dra-noop-driver-kubeletplugin
   namespace: dra-noop-driver
 spec:
@@ -70,8 +38,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
-        image: jondev.azurecr.io/dra-noo-driver:latest
-        imagePullPolicy: Always
+        image: jondev.azurecr.io/dra-noop-driver:v1.32.0
+        imagePullPolicy: IfNotPresent
         name: plugin
         securityContext:
           privileged: true

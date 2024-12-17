@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/dynamic-resource-allocation/kubeletplugin"
 	"k8s.io/klog/v2"
-	drapbv1 "k8s.io/kubelet/pkg/apis/dra/v1alpha4"
+	drapbv1 "k8s.io/kubelet/pkg/apis/dra/v1beta1"
 )
 
 const (
@@ -73,7 +73,7 @@ func NewDriver(ctx context.Context, clientset kubernetes.Interface, nodeName str
 
 	plugin, err := kubeletplugin.Start(
 		ctx,
-		driver,
+		[]interface{}{driver},
 		kubeletplugin.KubeClient(clientset),
 		kubeletplugin.NodeName(nodeName),
 		kubeletplugin.DriverName(DriverName),
